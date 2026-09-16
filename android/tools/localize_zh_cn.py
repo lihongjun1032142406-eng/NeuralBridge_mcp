@@ -2,15 +2,15 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 
-# Chinese edition: user-visible presentation strings only. Protocol/tool/category identifiers are untouched.
+# Chinese edition build transform. Only exact quoted user-visible literals are changed.
+# Identifiers, MCP protocol/tool names and log category values remain untouched.
 replacements = {
     "Status": "状态", "Setup": "设置", "Logs": "日志",
-    "CHECKING STATUS...": "正在检查状态…",
-    "WAITING FOR CONNECTION": "等待连接",
-    "Waiting for connection": "等待 MCP 客户端连接",
-    "ENABLE": "启用", "Accessibility": "无障碍服务", "MCP Server": "MCP 服务",
-    "Screenshots": "截图", "DEVICE INFO": "设备信息", "PERFORMANCE": "性能",
-    "Total": "总计", "PERMISSIONS": "权限", "CLEAR": "清空", "PAUSE": "暂停",
+    "CHECKING STATUS...": "正在检查状态…", "WAITING FOR CONNECTION": "等待连接",
+    "Waiting for connection": "等待 MCP 客户端连接", "ENABLE": "启用",
+    "Accessibility": "无障碍服务", "MCP Server": "MCP 服务", "Screenshots": "截图",
+    "DEVICE INFO": "设备信息", "PERFORMANCE": "性能", "Total": "总计",
+    "PERMISSIONS 0/5": "权限 0/5", "CLEAR": "清空", "PAUSE": "暂停",
     "No commands logged yet.\\nExecute MCP commands to see activity here.": "暂无命令日志。\\n执行 MCP 命令后将在此显示活动记录。",
     "Permission Name": "权限名称", "Description": "说明", "GRANT": "授权",
     "DISABLED": "已停用", "ALL SYSTEMS READY": "全部系统就绪", "SETUP INCOMPLETE": "设置未完成",
@@ -23,7 +23,7 @@ replacements = {
     "Post Notifications": "发送通知", "Show foreground service notification": "显示前台服务通知",
     "Battery Optimization": "电池优化", "Prevent Android from killing the service": "防止 Android 终止后台服务",
     "MediaProjection": "屏幕捕获", "Enable fast screenshot capture (60ms)": "启用快速截图捕获（约 60ms）",
-    "Model:": "型号:", "Screen:": "屏幕:", "Density:": "密度:", "no wifi": "无 Wi-Fi", "device-ip": "设备IP",
+    "device-ip": "设备IP", "no wifi": "无 Wi-Fi",
 }
 
 files = [
@@ -39,8 +39,13 @@ files = [
 for path in files:
     text = path.read_text(encoding="utf-8")
     for old, new in replacements.items():
-        text = text.replace(old, new)
+        text = text.replace(f'"{old}"', f'"{new}"')
+    if path.name == "MainActivity.kt":
+        text = text.replace('permissionProgressLabel.text = "PERMISSIONS $granted/$total"', 'permissionProgressLabel.text = "权限 $granted/$total"')
+        text = text.replace('append("Model: ${Build.MANUFACTURER} ${Build.MODEL}\\n")', 'append("型号: ${Build.MANUFACTURER} ${Build.MODEL}\\n")')
+        text = text.replace('append("Screen: ${dm.widthPixels}x${dm.heightPixels} @ ${dm.densityDpi}dpi\\n")', 'append("屏幕: ${dm.widthPixels}x${dm.heightPixels} @ ${dm.densityDpi}dpi\\n")')
+        text = text.replace('append("Density: ${dm.density}x")', 'append("密度: ${dm.density}x")')
     path.write_text(text, encoding="utf-8")
     print(f"localized: {path.relative_to(root)}")
 
-print("zh-CN UI localization transform complete; MCP protocol/tool identifiers preserved")
+print("zh-CN UI transform complete; MCP protocol/tool/category identifiers preserved")
