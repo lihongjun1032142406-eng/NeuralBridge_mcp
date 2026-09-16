@@ -28,10 +28,16 @@ jobs:
       - name: Apply Simplified Chinese UI localization
         run: python3 android/tools/localize_zh_cn.py
 
-      - name: Guard protocol identifiers
+      - name: Apply Android 14+ MediaProjection FGS FIX1
+        run: python3 android/tools/fix_media_projection_fgs.py
+
+      - name: Guard protocol and MediaProjection identifiers
         run: |
           grep -q '"ALL"' android/app/src/main/kotlin/com/neuralbridge/companion/MainActivity.kt
           grep -q 'MCP:' android/app/src/main/kotlin/com/neuralbridge/companion/MainActivity.kt
+          grep -q 'FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION' android/app/src/main/kotlin/com/neuralbridge/companion/service/NeuralBridgeAccessibilityService.kt
+          grep -q 'android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION' android/app/src/main/AndroidManifest.xml
+          grep -q 'specialUse|mediaProjection' android/app/src/main/AndroidManifest.xml
 
       - name: Build debug APK
         working-directory: android
@@ -42,9 +48,9 @@ jobs:
           find android -type f -name '*.apk' -print
           test -n "$(find android -type f -name '*.apk' -print -quit)"
 
-      - name: Upload Chinese APK
+      - name: Upload Chinese FIX1 APK
         uses: actions/upload-artifact@v4
         with:
-          name: NeuralBridge-zh-CN-debug-apk
+          name: NeuralBridge-zh-CN-FIX1-debug-apk
           path: android/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
