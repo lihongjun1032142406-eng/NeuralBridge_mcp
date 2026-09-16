@@ -1,4 +1,4 @@
-name: Build Android Debug APK
+name: Build NeuralBridge Chinese Debug APK
 
 on:
   workflow_dispatch:
@@ -25,6 +25,14 @@ jobs:
         with:
           gradle-version: '8.13'
 
+      - name: Apply Simplified Chinese UI localization
+        run: python3 android/tools/localize_zh_cn.py
+
+      - name: Guard protocol identifiers
+        run: |
+          grep -q '"ALL"' android/app/src/main/kotlin/com/neuralbridge/companion/MainActivity.kt
+          grep -q 'MCP:' android/app/src/main/kotlin/com/neuralbridge/companion/MainActivity.kt
+
       - name: Build debug APK
         working-directory: android
         run: gradle --no-daemon assembleDebug
@@ -34,9 +42,9 @@ jobs:
           find android -type f -name '*.apk' -print
           test -n "$(find android -type f -name '*.apk' -print -quit)"
 
-      - name: Upload APK
+      - name: Upload Chinese APK
         uses: actions/upload-artifact@v4
         with:
-          name: NeuralBridge-debug-apk
+          name: NeuralBridge-zh-CN-debug-apk
           path: android/**/build/outputs/apk/debug/*.apk
           if-no-files-found: error
